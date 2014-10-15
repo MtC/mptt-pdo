@@ -6,10 +6,18 @@ require_once 'settings.php';
 
 use \PDO as PDO;
 
+/**
+ * PDOConnection
+ * static class that gets its settings from settings.php
+ * which is itself a static class
+ */
 class PDOConnection {
     static protected $con;
 
-    static function create() {
+    /**
+     * create() creates the connection and stores it in a protected $con
+     */
+    static protected function create() {
         try {
             self::$con = new PDO(
                 Settings::TYPE.':host='.Settings::HOST.';dbname='.Settings::DBNAME,
@@ -21,6 +29,10 @@ class PDOConnection {
         }
     }
 
+    /**
+     * connection() starts create() and then returns $con
+     * @return object PDO
+     */
     static function connection() {
         self::create();
         return self::$con;
