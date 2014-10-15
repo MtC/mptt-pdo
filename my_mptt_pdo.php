@@ -18,7 +18,35 @@ class MyMpttPDO extends MpttPDO {
         return parent::createTable($sTableName, $bAutocreate);
     }
 
+    static public function setTable($sTableName) {
+        return parent::setTable($sTableName);
+    }
+
+    static public function getTable() {
+        return parent::getTable();
+    }
+
     static public function getTables() {
         return parent::getTables();
+    }
+
+    static public function load($iId) {
+        return parent::load($iId);
+    }
+
+    static public function createNode($sName) {
+        return parent::createNode($sName);
+    }
+
+    static public function addNode($soNode, $oParent) {
+        return parent::addNode($soNode, $oParent);
+    }
+
+    static public function addSibling($soNode, $oSibling) {
+        return parent::addSibling($soNode, $oSibling);
+    }
+
+    static public function store($oNode) {
+        return parent::store($oNode);
     }
 }
