@@ -8,7 +8,9 @@ use MtC\MyMpttPDO as MPTT;
 $con = CON::connection();
 
 MPTT::pdo($con);
-$test = MPTT::createTable('test', true);
+MPTT::createTable('test');
+$test = MPTT::getTables();
+print_r($test);
 ?>
 <!DOCTYPE html>
 <html>

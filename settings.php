@@ -8,4 +8,5 @@ class Settings {
     const DBNAME   = 'mptt_server';
     const USERNAME = 'root';
     const PASSWORD = '';
+    const LOGFILE  = 'php_log.csv';
 }

@@ -2,6 +2,7 @@
 
 namespace MtC;
 
+date_default_timezone_set('CET');
 require_once 'settings.php';
 
 use \PDO as PDO;
@@ -14,9 +15,22 @@ class MpttPDO {
         self::$_pdo = $pdo;
     }
 
-    static protected function isTable($sTableName) {
+    static protected function logMessage($aMessage) {
+        $fileName = 'phplogs/phplogs'.\date('d-m-Y').'.csv';
+        $fp       = fopen($fileName, 'a');
+        \fputcsv($fp, $aMessage);
+        \fclose($fp);
+    }
+
+    static protected function setTable($sTableName) {
         $sTableName = \strtolower($sTableName);
         $sTableName = \substr($sTableName, 0, 5) != 'mptt_' ? 'mptt_'.$sTableName : $sTableName;
+        self::$_tableName = $sTableName;
+        return $sTableName;
+    }
+
+    static protected function isTable($sTableName) {
+        $sTableName = self::setTable($sTableName);
         $_sql   = "SELECT COUNT(*)
                    FROM information_schema.tables
                    WHERE table_schema = '".Settings::DBNAME."' AND table_name = :tableName";
@@ -24,14 +38,15 @@ class MpttPDO {
         $_stmt->bindParam(':tableName', $sTableName, PDO::PARAM_STR);
         $_stmt->execute();
         $return = $_stmt->fetchColumn();
-        self::$_tableName = $sTableName;
         return $return;
     }
 
     static protected function createTable($sTableName, $bAutocreate = false) {
         $bTable = self::isTable($sTableName);
         if ($bTable) {
-            echo 'the table ('.self::$_tableName.') already exists';
+            $message  = [\date('d-m-Y H:i:s', time()), 'The table '.self::$_tableName.' already exists.'];
+            self::logMessage($message);
+            return false;
         } else if ($bAutocreate) {
             echo 'creating '.self::$_tableName;
             $_sql = "SET NAMES utf8;
@@ -52,14 +67,20 @@ class MpttPDO {
         }
     }
 
-    static public function test() {
-        if (self::isTable('test')) {
-            $_sql   = "SELECT * FROM test";
-            $_stmt  = self::$_pdo->query($_sql);
-            $result = $_stmt->fetchAll(PDO::FETCH_OBJ);
-            return $result;
-        } else {
-            return 'no such thing';
+    static protected function getTables() {
+        $_sql    = "SELECT TABLE_NAME
+                    FROM INFORMATION_SCHEMA.TABLES
+                    WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='".Settings::DBNAME."'
+                    ORDER BY TABLE_NAME";
+        $_stmt   = self::$_pdo->prepare($_sql);
+        $_stmt->execute();
+        $_tables = $_stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result  = array();
+        foreach ($_tables as $_table) {
+            if (substr($_table['TABLE_NAME'], 0, 5) == 'mptt_') {
+                $result[] = $_table['TABLE_NAME'];
+            }
         }
+        return $result;
     }
 }

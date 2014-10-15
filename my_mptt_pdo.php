@@ -15,6 +15,10 @@ class MyMpttPDO extends MpttPDO {
     }
 
     static public function createTable($sTableName, $bAutocreate = false) {
-        parent::createTable($sTableName, $bAutocreate);
+        return parent::createTable($sTableName, $bAutocreate);
+    }
+
+    static public function getTables() {
+        return parent::getTables();
     }
 }
