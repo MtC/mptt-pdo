@@ -1,4 +1,4 @@
 mptt-pdo
 ========
 
-Create a simple PDO version of the mptt logic
+Create a simple PDO version of the mptt logic.
