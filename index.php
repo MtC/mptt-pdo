@@ -9,7 +9,6 @@ $con = CON::connection();
 
 MPTT::pdo($con);
 
-print_r(MPTT::test());
 ?>
 <!DOCTYPE html>
 <html>
