@@ -49,4 +49,8 @@ class MyMpttPDO extends MpttPDO {
     static public function store($oNode) {
         return parent::store($oNode);
     }
+
+    static public function deleteNode($iId) {
+        return parent::deleteNode($iId);
+    }
 }

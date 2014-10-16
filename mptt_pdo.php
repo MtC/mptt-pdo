@@ -118,25 +118,61 @@ class MpttPDO {
     }
 
     static protected function createNode($sName) {
-        $_sql  = "INSERT INTO ".self::$_tableName." (name, lft, rgt)
-                  SELECT :name, MAX(rgt)+1, MAX(rgt)+2 FROM ".self::$_tableName;
-        $_stmt = self::$_pdo->prepare($_sql);
-        $_stmt->bindParam(':name', $sName, PDO::PARAM_STR);
-        $_stmt->execute();
-        $id    = self::$_pdo->lastInsertId();
-        return self::load($id);
+        try {
+            self::$_pdo->beginTransaction();
+            $_sql  = "INSERT INTO ".self::$_tableName." (name, lft, rgt)
+                      SELECT :name, MAX(rgt)+1, MAX(rgt)+2 FROM ".self::$_tableName;
+            $_stmt = self::$_pdo->prepare($_sql);
+            $_stmt->bindParam(':name', $sName, PDO::PARAM_STR);
+            $_stmt->execute();
+            $id    = self::$_pdo->lastInsertId();
+            self::$_pdo->commit();
+            return self::load($id);
+        } catch (Exception $e) {
+            self::$_pdo->rollback();
+            self::logMessage($e);
+        }
     }
 
     static protected function updateNode($oNode) {
-        $_sql  = "UPDATE ".self::$_tableName."
-                  SET name = :name, lft = :lft, rgt = :rgt
-                  WHERE id = :id";
-        $_stmt = self::$_pdo->prepare($_sql);
-        $_stmt->bindParam(':name', $oNode->name, PDO::PARAM_STR);
-        $_stmt->bindParam(':lft', $oNode->lft, PDO::PARAM_INT);
-        $_stmt->bindParam(':rgt', $oNode->rgt, PDO::PARAM_INT);
-        $_stmt->bindParam(':id', $oNode->id, PDO::PARAM_INT);
-        $_stmt->execute();
+        try {
+            self::$_pdo->beginTransaction();
+            $_sql  = "UPDATE ".self::$_tableName."
+                      SET name = :name, lft = :lft, rgt = :rgt
+                      WHERE id = :id";
+            $_stmt = self::$_pdo->prepare($_sql);
+            $_stmt->bindParam(':name', $oNode->name, PDO::PARAM_STR);
+            $_stmt->bindParam(':lft', $oNode->lft, PDO::PARAM_INT);
+            $_stmt->bindParam(':rgt', $oNode->rgt, PDO::PARAM_INT);
+            $_stmt->bindParam(':id', $oNode->id, PDO::PARAM_INT);
+            $_stmt->execute();
+            self::$_pdo->commit();
+            return self::load($id);
+        } catch (Exception $e) {
+            self::$_pdo->rollback();
+            self::logMessage($e);
+        }
+    }
+
+    static protected function deleteNode($iId) {
+        try {
+            self::$_pdo->beginTransaction();
+            $_sql  = "SET @lft = (SELECT lft FROM ".self::$_tableName." WHERE id = :id), @rgt = (SELECT rgt FROM ".self::$_tableName." WHERE id = :id)";
+            $_stmt = self::$_pdo->prepare($_sql);
+            $_stmt->bindParam(':id', $iId, PDO::PARAM_INT);
+            $_stmt->execute();
+            self::$_pdo->exec(
+                "SET @id_root = (SELECT id FROM ".self::$_tableName." WHERE lft <= @lft AND rgt >= @rgt LIMIT 0,1);
+                 DELETE FROM ".self::$_tableName." WHERE lft >= @lft AND rgt <= @rgt;
+                 UPDATE ".self::$_tableName." SET rgt = (rgt - (@rgt - @lft + 1)) WHERE id = @id_root;
+                 UPDATE ".self::$_tableName." SET lft = (lft - (@rgt - @lft + 1)), rgt = (rgt - (@rgt - @lft + 1)) WHERE lft > @lft AND rgt > @rgt"
+            );
+            self::$_pdo->commit();
+            return self::load($iId);
+        } catch (Exception $e) {
+            self::$_pdo->rollback();
+            self::logMessage($e);
+        }
     }
 
     static protected function addNode($soNode, $oParent) {

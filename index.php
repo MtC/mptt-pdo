@@ -17,13 +17,14 @@ MPTT::pdo($con);
 MPTT::setTable('test');
 
 $test   = MPTT::load(2);
+MPTT::delete(3);
 //$test   = MPTT::addSibling('gekkie', $test);
 //beautify($test);
 //$test2  = MPTT::createNode('tada');
 //$test2  = MPTT::addNode('subtada', $test2);
 //$test2  = MPTT::addSibling('tada2', $test2);
 //$test   = MPTT::addNode($test2, $test);
-beautify($test);
+//beautify($test);
 ?>
 <!DOCTYPE html>
 <html>
